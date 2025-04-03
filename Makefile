@@ -9,7 +9,7 @@ ifneq ($(filter init .copy-and-update,$(MAKECMDGOALS)),)
 # Skip the local.mk check for these targets.
 else
 ifeq ("$(wildcard ../local.mk)","")
-$(error "local.mk not found in the root directory. Please run 'make -C latex-build init' to create a template local.mk file.")
+$(error "Error: local.mk not found in the root directory. Please run 'make -C latex-build init' to create a template local.mk file.")
 endif
 endif
 
@@ -20,31 +20,28 @@ endif
 LATEX  := pdflatex
 BIBTEX := bibtex
 
-# Default target: build the output PDF.
-all: $(OUTPUT_DIR)/$(OUTPUT_PDF)
-
-# Build rule for the output PDF.
-$(OUTPUT_DIR)/$(OUTPUT_PDF): $(MAIN_TEX)
-	@mkdir -p $(OUTPUT_DIR)
-	@echo "Compiling ../$(MAIN_TEX) to generate $(OUTPUT_DIR)/$(OUTPUT_PDF)..."
-	$(LATEX) -output-directory=$(OUTPUT_DIR) ../$(MAIN_TEX)
+# Default target: always recompile the output PDF.
+all:
+	@echo "Compilation of ../$(OUTPUT_DIR)/$(OUTPUT_PDF)..."
+	@mkdir -p ../$(OUTPUT_DIR)
+	$(LATEX) -output-directory=../$(OUTPUT_DIR) ../$(MAIN_TEX)
 	@if [ -f "../$(BIB_FILE)" ]; then \
 		echo "Bibliography file found, running bibtex..."; \
-		$(BIBTEX) $(OUTPUT_DIR)/$(basename $(MAIN_TEX)); \
-		$(LATEX) -output-directory=$(OUTPUT_DIR) ../$(MAIN_TEX) \
+		$(BIBTEX) ../$(OUTPUT_DIR)/$(basename $(MAIN_TEX)); \
+		$(LATEX) -output-directory=../$(OUTPUT_DIR) ../$(MAIN_TEX); \
 	fi
-	$(LATEX) -output-directory=$(OUTPUT_DIR) ../$(MAIN_TEX)
-	@echo "Build complete: $(OUTPUT_DIR)/$(OUTPUT_PDF) created."
+	$(LATEX) -output-directory=../$(OUTPUT_DIR) ../$(MAIN_TEX)
+	@echo "Build complete: ../$(OUTPUT_DIR)/$(OUTPUT_PDF) created."
 	@if [ "$(COPY_SPECIFIC)" = "true" ] && [ -n "$(SPECIFIC_DIR)" ] && [ -n "$(SPECIFIC_PDF)" ]; then \
 		mkdir -p ../$(SPECIFIC_DIR); \
-		cp $(OUTPUT_DIR)/$(OUTPUT_PDF) ../$(SPECIFIC_DIR)/$(SPECIFIC_PDF); \
-		echo "Copied $(OUTPUT_DIR)/$(OUTPUT_PDF) to ../$(SPECIFIC_DIR)/$(SPECIFIC_PDF)."; \
+		cp ../$(OUTPUT_DIR)/$(OUTPUT_PDF) ../$(SPECIFIC_DIR)/$(SPECIFIC_PDF); \
+		echo "Copied ../$(OUTPUT_DIR)/$(OUTPUT_PDF) to ../$(SPECIFIC_DIR)/$(SPECIFIC_PDF)."; \
 	fi
 
 # Clean auxiliary files.
 clean:
-	@echo "Cleaning up auxiliary files in $(OUTPUT_DIR)..."
-	@rm -rf $(OUTPUT_DIR)
+	@echo "Cleaning up auxiliary files in ../$(OUTPUT_DIR)..."
+	@rm -rf ../$(OUTPUT_DIR)
 	@if [ "$(COPY_SPECIFIC)" = "true" ] && [ -n "$(SPECIFIC_DIR)" ] && [ -n "$(SPECIFIC_PDF)" ]; then \
 		if [ -f "../$(SPECIFIC_DIR)/$(SPECIFIC_PDF)" ]; then \
 			rm -f ../$(SPECIFIC_DIR)/$(SPECIFIC_PDF); \
@@ -88,5 +85,6 @@ init:
 		$(MAKE) .copy-and-update; \
 	fi
 	@$(MAKE) check-tools >/dev/null || (echo "Error: Required tools are missing. Please install them and try again." && exit 1)
+	@echo "Initialization complete. Please update ../local.mk with your project's details."
 
 .PHONY: all clean init check-tools
