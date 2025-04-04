@@ -168,6 +168,44 @@ This command will:
 - Remove all files in the `OUTPUT_DIR`.
 - If `COPY_SPECIFIC` is enabled, remove the file specified by `SPECIFIC_PDF` in `SPECIFIC_DIR`.
 
+### 5. Update `local.mk` with New Template Changes
+
+If the `template.mk` file is updated (e.g., new configuration options are added), you can update your `local.mk` file without losing your custom settings. Use the following command:
+
+```bash
+make -C latex-build update-local
+```
+
+This command will:
+- Compare `template.mk` with your existing `local.mk`.
+- Add any new variables from `template.mk` to `local.mk`.
+- Preserve your custom values for existing variables in `local.mk`.
+
+#### Example
+
+Suppose your `template.mk` file is updated to include a new variable:
+
+```makefile
+NEW_OPTION = default_value
+```
+
+And your current `local.mk` looks like this:
+
+```makefile
+MAIN_TEX = main.tex
+OUTPUT_PDF = mypaper.pdf
+```
+
+After running `make -C latex-build update-local`, your `local.mk` will be updated to:
+
+```makefile
+MAIN_TEX = main.tex
+OUTPUT_PDF = mypaper.pdf
+NEW_OPTION = default_value
+```
+
+This ensures that your custom settings remain intact while incorporating new options from the template.
+
 ## Summary
 
 - **Submodule Usage**: Ideal for maintaining a shared build environment across multiple projects.
